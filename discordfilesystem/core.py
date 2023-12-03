@@ -4,12 +4,19 @@ from typing import List
 import os
 import json
 import random
+import asyncio
 from tqdm import tqdm
+import aiohttp
 
 import discord
 
 from file_helper import split_file, merge_chunks
 from webhook_helper import upload_files
+
+
+this_file_dir = os.path.dirname(os.path.abspath(__file__))
+cache_file = this_file_dir + "./files_cache.json"
+cache_file = os.path.abspath(cache_file)
 
 
 class FileSystem:
@@ -27,10 +34,10 @@ class FileSystem:
         run(): Executes the main logic of the program.
     """
 
-    def __init__(self, directory: str, webhook_url: str):
+    def __init__(self, directory: str, webhook_urls: list[str]):
         """Initialize the Core class."""
         self.directory = directory
-        self.webhook_url = webhook_url
+        self.webhook_urls = webhook_urls
 
     def read_files_cache(self):
         """read the files cache.
@@ -41,7 +48,7 @@ class FileSystem:
             The files cache.
         """
         # read the files cache
-        with open("files_cache.json", "r", encoding="utf-8") as f:
+        with open(cache_file, "r", encoding="utf-8") as f:
             return dict(json.load(f))
 
     def update_files_cache(
@@ -71,16 +78,20 @@ class FileSystem:
         }
 
         # write the files cache
-        with open("files_cache.json", "w", encoding="utf-8") as f:
+        with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(files_cache, f, indent=4)
 
-    async def upload_file(self, file_path: str):
+    async def upload_file(
+        self, file_path: str, chunks_per_upload: int = 4
+    ):
         """Upload a file to discord.
 
         Parameters
         ----------
         file_path : str
             The path to the file to upload.
+        chunks_per_upload : int
+            The number of chunks to upload per upload. Defaults to 4.
         """
         file_path = os.path.abspath(file_path)
         filename = os.path.basename(file_path)
@@ -89,7 +100,7 @@ class FileSystem:
         # get file size
         file_size = os.path.getsize(file_path)
 
-        file_chunks = split_file(file_path, temp_folder=temp_folder)
+        file_chunks = await split_file(file_path, temp_folder=temp_folder)
 
         # read files cache
         files_cache = self.read_files_cache()
@@ -102,34 +113,53 @@ class FileSystem:
             if file_id not in files_cache.keys():
                 break
 
+        # list of chunk files
+        chunk_files = []
+
+        # list of chunk urls
         chunk_urls = []
 
-        with tqdm(
-            total=file_size,
-            desc="Uploading file",
-            unit="B",
-            unit_scale=True
-        ) as progress_bar:
-            for index, chunk in enumerate(file_chunks):
+        # create an aiohttp session
+        async with aiohttp.ClientSession() as session:
 
-                # create a discord file object
-                discord_file = discord.File(
-                    chunk, filename=f"{file_id}.{index}"
-                )
+            # create a progress bar
+            with tqdm(
+                total=file_size,
+                desc="Uploading file",
+                unit="B",
+                unit_scale=True
+            ) as progress_bar:
 
-                # upload the file
-                attachments = await upload_files(
-                    [discord_file], self.webhook_url
-                )
+                # iterate over the file chunks
+                for index, chunk in enumerate(file_chunks):
 
-                # add the url to the list of chunk urls
-                chunk_urls.append(attachments[0].url)
+                    # add the file to the list of chunk files
+                    chunk_files.append(
+                        discord.File(chunk, filename=f"{file_id}.{index}")
+                    )
 
-                # update the progress bar
-                progress_bar.update(os.path.getsize(chunk))
+                    # check if the number of chunks per upload has been reached
+                    if (index + 1) % chunks_per_upload == 0:
 
-                # delete the temporary file
-                os.remove(chunk)
+                        # upload the chunk
+                        attachments = await upload_files(
+                            session, chunk_files, self.webhook_urls
+                        )
+
+                        # add the urls to the list of chunk urls
+                        chunk_urls.extend(
+                            [attachment.url for attachment in attachments]
+                        )
+
+                        # reset the chunk files
+                        chunk_files = []
+
+                    # update the progress bar
+                    progress_bar.update(os.path.getsize(chunk))
+
+        # remove the temporary chunk files
+        for chunk in file_chunks:
+            os.remove(chunk)
 
         # update the files cache
         self.update_files_cache(file_id, chunk_urls, filename, file_size)
@@ -179,14 +209,25 @@ class FileSystem:
         """Test the Discord File System."""
 
         # upload a file
-        await self.upload_file("valorant.mp4")
+        # await self.upload_file("C:\\Users\\broth\\Code\\Discord Bots\\discordFileSystem\\discordfilesystem\\downloaded_files\\valorant.mp4")
+
+        # create the download directory
+        if not os.path.exists("./downloaded_files/"):
+            os.makedirs("./downloaded_files/")
 
         # download a file
         download_dir = os.path.abspath("./downloaded_files/")
-        await self.download_file("7691", download_dir=download_dir)
+        await self.download_file("3571", download_dir=download_dir)
 
 
-# if __name__ == "__main__":
-#     core = FileSystem(
-#         "./", "https://discord.com/api/webhooks/1179721340689842236/ZBJk8ZokbSuAMPYDB3clIZuYa7gnw95wsRgEOi5ZqwdVqupmt4N1I-1eovLAR8kFzr02")
-#     asyncio.run(core.test())
+if __name__ == "__main__":
+    webhooks = [
+        "https://discord.com/api/webhooks/1179721340689842236/ZBJk8ZokbSuAMPYDB3clIZuYa7gnw95wsRgEOi5ZqwdVqupmt4N1I-1eovLAR8kFzr02",
+        "https://discord.com/api/webhooks/1180123961909051473/dRRzVJ93BL6E2x-r5sb3Rt45lPVGtkR9IpabCOABcWXIp_7Hyz0khTljuA6gzNALBJD7",
+        "https://discord.com/api/webhooks/1179721808421867590/gQ77GS_in15R_Z5vOw10EK5XMgpc6jV8MkCZyDQGBU_0EEz487Vl9fOdjSjhnT5-j1yo",
+        "https://discord.com/api/webhooks/1179721862863917056/dpRDWWW4ce8W3gI29NVvKsO9I8EOxvZbPLH3pv89bsSO9j9H42i0SZ2PViYXoP9oRrhA",
+        "https://discord.com/api/webhooks/1179721901233418314/tULNftikKEuJFeJfkzMyGyUiZgzSfnUdA1JsOKHlzF5fsViY75EJqKCPBck18E3xXs9X"
+    ]
+    core = FileSystem(
+        "./", webhooks)
+    asyncio.run(core.test())

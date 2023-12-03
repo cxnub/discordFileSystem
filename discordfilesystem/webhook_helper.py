@@ -3,19 +3,24 @@ from typing import List
 import aiohttp
 import discord
 from discord import Webhook
+import asyncio
 
 
 async def upload_files(
-    files: List[discord.File], webhook_url: str
+    session: aiohttp.ClientSession,
+    files: List[discord.File],
+    webhook_urls: List[str]
 ) -> List[discord.Attachment]:
     """Upload files to channel using webhooks.
 
     Parameters
     ----------
+    session : `aiohttp.ClientSession`
+        The aiohttp session to use.
     files : list of `discord.File`
         The files to upload.
-    webhook_url : str
-        The webhook URL.
+    webhook_urls : list of str
+        The webhook urls to use.
 
     Returns
     -------
@@ -25,24 +30,35 @@ async def upload_files(
     if not files:
         return []
 
-    # start a aiohttp client session
-    async with aiohttp.ClientSession() as session:
+    # create a partial webhook for each webhook url
+    webhooks = [
+        Webhook.from_url(url, session=session) for url in webhook_urls
+    ]
 
-        # create a partial webhook from its URL
-        webhook = Webhook.from_url(webhook_url, session=session)
+    # list of webhook messages
+    webhook_messages = []
 
-        # send the files
-        webhook_message = await webhook.send(
-            files=files,
-            username="fs",
-            wait=True
-        )
+    # create a coroutine for sending each file
+    async def send_file(file, webhook):
+        return await webhook.send(file=file, wait=True)
 
-        # close the session
-        await session.close()
+    # gather all the coroutines and send files concurrently
+    tasks = []
+    for file in files:
 
-        # return the list of attachments
-        return webhook_message.attachments
+        # get the webhook to use
+        webhook = webhooks[len(tasks) % len(webhooks)]
+
+        # create a task for sending the file
+        tasks.append(send_file(file, webhook))
+
+    # wait for all tasks to complete
+    webhook_messages = await asyncio.gather(*tasks)
+
+    # return the list of attachments
+    return [
+        message.attachments[0] for message in webhook_messages
+    ]
 
 
 # if __name__ == "__main__":

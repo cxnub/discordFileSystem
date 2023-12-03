@@ -10,7 +10,7 @@ from tqdm import tqdm
 CHUNK_SIZE = 24_000_000
 
 
-def split_file(
+async def split_file(
     file_path: str,
     chunk_size: int = CHUNK_SIZE,
     temp_folder: str = "./temp_upload_files/"
@@ -34,30 +34,31 @@ def split_file(
     filename = os.path.basename(file_path)
     chunk_files = []
 
-    with open(file_path, "rb") as file:
+    # create folder to store temporary files
+    if not os.path.exists(temp_folder):
+        os.makedirs(temp_folder)
+
+    # get file size
+    async with aiofiles.open(file_path, "rb") as file:
 
         # index to keep track of chunks
         index = 0
 
         # read file by chunks of chunk size
-        while (chunk := file.read(chunk_size)):
-
-            # create folder to store temporary files
-            if not os.path.exists(temp_folder):
-                os.makedirs(temp_folder)
+        while (chunk := await file.read(chunk_size)):
 
             # create a temporary file object for each chunk
             full_file_path = f"{temp_folder}/{filename}.{index}"
-            with open(full_file_path, "wb") as temp_file:
-                temp_file.write(chunk)
+
+            # write the chunk to the temporary file
+            async with aiofiles.open(full_file_path, "wb") as temp_file:
+                await temp_file.write(chunk)
 
             # add the temporary file path to the list of chunk files
             chunk_files.append(full_file_path)
 
             # increment the index
             index += 1
-
-        file.close()
 
         return chunk_files
 
@@ -165,17 +166,17 @@ async def merge_chunks(
             await asyncio.gather(*tasks)
 
         # merge the temporary files
-        with open(output_path, 'wb') as merged_file:
+        async with aiofiles.open(output_path, 'wb') as merged_file:
 
             # iterate through the temporary files
             for index in range(len(chunk_urls)):
                 temp_file_path = f"./temp_download_files/{output_file}.{index}"
 
                 # append the temporary file to the merged file
-                with open(temp_file_path, 'rb') as temp_file:
+                async with aiofiles.open(temp_file_path, 'rb') as temp_file:
 
                     # read the temporary file and append to the merged file
-                    merged_file.write(temp_file.read())
+                    await merged_file.write(await temp_file.read())
 
                 # remove the temporary file
                 os.remove(temp_file_path)
