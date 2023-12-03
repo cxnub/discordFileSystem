@@ -21,21 +21,21 @@ This project explores the feasibility of leveraging Discord, a popular communica
 ## Getting Started
 
 1. **Set up a Discord Webhook:**
-   - Create a Discord Webhook. [How to create a Discord Webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks).
-   - Copy the webhook URL.
-   - Up to 5 webhooks are allowed.
+   - Create a few webhook urls. For better performance create 5 webhooks, with 1 webhook per text channel.
+   - [How to create a Discord Webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks).
+   - Note down the webhook urls.
 
-2. **Configure the Project:**
+3. **Configure the Project:**
    - Clone this repository.
    - Update config.json, it should look like this:
      ```json
      {"webhooks": ["YOUR_WEBHOOK_URL"]}
 
-3. **Install Dependencies:**
+4. **Install Dependencies:**
    ```bash
    pip install -r requirements.txt
 
-4. **Run the project:**
+5. **Run the project:**
    ```bash
    python cli.py
 
