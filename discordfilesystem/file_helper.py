@@ -8,12 +8,13 @@ from tqdm import tqdm
 
 
 CHUNK_SIZE = 24_000_000
+this_file_dir = os.path.dirname(os.path.abspath(__file__))
+temp_download_folder = this_file_dir + "/temp_download_files/"
+temp_upload_folder = this_file_dir + "/temp_upload_files/"
 
 
 async def split_file(
-    file_path: str,
-    chunk_size: int = CHUNK_SIZE,
-    temp_folder: str = "./temp_upload_files/"
+    file_path: str, chunk_size: int = CHUNK_SIZE
 ) -> List[str]:
     """Split a file into chunks and stores them in a temporary folder.
 
@@ -23,14 +24,12 @@ async def split_file(
         The full path to the file to split into chunks.
     chunk_size: int
         The size per chunk. Defaults to 24000000.
-    temp_folder : str
-        The path to the temporary folder to store the chunks in.
 
     Returns
     -------
     list of str
     """
-
+    temp_folder = temp_upload_folder
     filename = os.path.basename(file_path)
     chunk_files = []
 
@@ -69,7 +68,6 @@ async def download_chunk(
     index: int,
     output_file: str,
     progress_bar: tqdm,
-    temp_folder: str = "./temp_download_files/"
 ):
     """Download a chunk from a url.
 
@@ -85,9 +83,10 @@ async def download_chunk(
         The path to the file to save the chunk to.
     progress_bar : tqdm
         The progress bar to update with the download progress.
-    temp_folder : str
-        The path to the temporary folder to store the chunks in.
     """
+    # temporary folder to store the chunks
+    temp_folder = temp_download_folder
+
     # download the chunk
     async with session.get(url) as response:
 
@@ -120,7 +119,6 @@ async def merge_chunks(
     chunk_urls: [],
     total_size: int,
     output_path: str,
-    temp_folder: str = "./temp_download_files/"
 ):
     """Merge chunks into a single file.
 
@@ -132,8 +130,6 @@ async def merge_chunks(
         The total size of the file to download.
     output_path : str
         The path to the file to save the merged chunks to.
-    temp_folder : str
-        The path to the temporary folder to store the chunks in.
     """
 
     output_file = os.path.basename(output_path)
@@ -151,8 +147,7 @@ async def merge_chunks(
             tasks = [
                 asyncio.create_task(
                     download_chunk(
-                        session, url, index, output_file, progress_bar,
-                        temp_folder=temp_folder
+                        session, url, index, output_file, progress_bar
                     )
                 ) for index, url in enumerate(chunk_urls)
             ]
@@ -165,7 +160,8 @@ async def merge_chunks(
 
             # iterate through the temporary files
             for index in range(len(chunk_urls)):
-                temp_file_path = f"./temp_download_files/{output_file}.{index}"
+                temp_file_path = temp_download_folder + \
+                    f"/{output_file}.{index}"
 
                 # append the temporary file to the merged file
                 async with aiofiles.open(temp_file_path, 'rb') as temp_file:

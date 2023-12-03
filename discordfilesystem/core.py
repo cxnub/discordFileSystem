@@ -33,9 +33,8 @@ class FileSystem:
         run(): Executes the main logic of the program.
     """
 
-    def __init__(self, directory: str, webhook_urls: list[str]):
+    def __init__(self, webhook_urls: list[str]):
         """Initialize the Core class."""
-        self.directory = directory
         self.webhook_urls = webhook_urls
 
     def read_files_cache(self):
@@ -80,8 +79,34 @@ class FileSystem:
         with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(files_cache, f, indent=4)
 
+    async def upload_chunks(
+        self,
+        session: aiohttp.ClientSession,
+        file_chunks: List[str]
+    ):
+        """Upload chunks to discord.
+
+        Parameters
+        ----------
+        session : aiohttp.ClientSession
+            The aiohttp session to use.
+        file_chunks : list of str
+            The chunks to upload.
+        Returns
+        -------
+        list of str
+            The urls of the uploaded chunks.
+        """
+        # upload the chunks
+        attachments = await upload_files(
+            session, file_chunks, self.webhook_urls
+        )
+
+        # return the urls of the uploaded chunks
+        return [attachment.url for attachment in attachments]
+
     async def upload_file(
-        self, file_path: str, chunks_per_upload: int = 4
+        self, file_path: str, chunks_per_upload: int = 5
     ):
         """Upload a file to discord.
 
@@ -90,16 +115,15 @@ class FileSystem:
         file_path : str
             The path to the file to upload.
         chunks_per_upload : int
-            The number of chunks to upload per upload. Defaults to 4.
+            The number of chunks to upload per upload. Defaults to 5.
         """
         file_path = os.path.abspath(file_path)
         filename = os.path.basename(file_path)
-        temp_folder = os.path.abspath("./temp_upload_files/")
 
         # get file size
         file_size = os.path.getsize(file_path)
 
-        file_chunks = await split_file(file_path, temp_folder=temp_folder)
+        file_chunks = await split_file(file_path)
 
         # read files cache
         files_cache = self.read_files_cache()
@@ -138,16 +162,12 @@ class FileSystem:
                     )
 
                     # check if the number of chunks per upload has been reached
-                    if (index + 1) % chunks_per_upload == 0:
+                    if index % chunks_per_upload == 0 or \
+                            index == len(file_chunks) - 1:
 
-                        # upload the chunk
-                        attachments = await upload_files(
-                            session, chunk_files, self.webhook_urls
-                        )
-
-                        # add the urls to the list of chunk urls
+                        # upload the chunk and store the urls
                         chunk_urls.extend(
-                            [attachment.url for attachment in attachments]
+                            await self.upload_chunks(session, chunk_files)
                         )
 
                         # reset the chunk files
@@ -156,12 +176,12 @@ class FileSystem:
                     # update the progress bar
                     progress_bar.update(os.path.getsize(chunk))
 
+        # update the files cache
+        self.update_files_cache(file_id, chunk_urls, filename, file_size)
+
         # remove the temporary chunk files
         for chunk in file_chunks:
             os.remove(chunk)
-
-        # update the files cache
-        self.update_files_cache(file_id, chunk_urls, filename, file_size)
 
     async def download_file(self, file_id: int, download_dir: str):
         """Download a file from discord.
@@ -185,10 +205,18 @@ class FileSystem:
         file_data = files_cache[file_id]
 
         # get the file name
-        filename = file_data["filename"]
+        filename = str(file_data["filename"])
 
-        # get te output file path
+        # get the output file path
         output_path = os.path.join(download_dir, filename)
+
+        index = 1
+        while os.path.exists(output_path):
+            name, extension = os.path.splitext(filename)
+            new_filename = f"{name} ({index}){extension}"
+            output_path = os.path.join(download_dir, new_filename)
+
+            index += 1
 
         # get the file size
         file_size = file_data["size"]
@@ -196,10 +224,5 @@ class FileSystem:
         # get the file urls
         file_urls = file_data["urls"]
 
-        # temporary folder to store the chunks
-        temp_folder = os.path.abspath("./temp_download_files/")
-
         # download the file
-        await merge_chunks(
-            file_urls, file_size, output_path, temp_folder=temp_folder
-        )
+        await merge_chunks(file_urls, file_size, output_path)

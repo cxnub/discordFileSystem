@@ -1,9 +1,9 @@
 """Webhook helper functions."""
 from typing import List
+import asyncio
 import aiohttp
 import discord
 from discord import Webhook
-import asyncio
 
 
 async def upload_files(
