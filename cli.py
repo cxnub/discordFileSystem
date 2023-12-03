@@ -93,12 +93,26 @@ def show_files(file_system: core.FileSystem):
 
 async def main():
     """The main function."""
+    print(r"""
+  ____  _                       _ _____ _ _      
+ |  _ \(_)___  ___ ___  _ __ __| |  ___(_) | ___ 
+ | | | | / __|/ __/ _ \| '__/ _` | |_  | | |/ _ \
+ | |_| | \__ \ (_| (_) | | | (_| |  _| | | |  __/
+ |____/|_|___/\___\___/|_|  \__,_|_|   |_|_|\___|
+ / ___| _   _ ___| |_ ___ _ __ ___               
+ \___ \| | | / __| __/ _ \ '_ ` _ \              
+  ___) | |_| \__ \ ||  __/ | | | | |             
+ |____/ \__, |___/\__\___|_| |_| |_|             
+        |___/
+__________________________________________________                              
+          """
+    )
 
     webhooks = read_config()["webhooks"]
     download_dir = read_config()["download_dir"]
 
     if not webhooks:
-        print("No webhooks found in config.json")
+        print("Error: No webhooks found in config.json")
         if input("Would you like to add some now? (y/n): ") == "y":
             add_webhooks()
         else:
@@ -106,7 +120,7 @@ async def main():
             exit()
 
     if not download_dir:
-        print("No download directory found in config.json")
+        print("Error: No download directory found in config.json")
         if input("Would you like to add one now? (y/n): ") == "y":
             add_download_dir()
         else:
@@ -118,7 +132,7 @@ async def main():
     file_system = core.FileSystem(webhooks)
 
     while True:
-        command = input("Enter command: ")
+        command = input("Enter command (help): ")
 
         if command == "exit":
             break
@@ -146,6 +160,16 @@ async def main():
 
         elif command == "list":
             show_files(file_system)
+
+        elif command == "help":
+            print(
+                "upload - Upload a file\n" +
+                "download - Download a file\n" +
+                "list - List all files\n" +
+                "exit - Exit the program\n" +
+                "help - Show this message\n" +
+                "add_webhooks - Add webhooks"
+            )
 
         elif command == "add_webhooks":
             add_webhooks()
