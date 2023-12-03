@@ -4,14 +4,13 @@ from typing import List
 import os
 import json
 import random
-import asyncio
 from tqdm import tqdm
 import aiohttp
 
 import discord
 
-from file_helper import split_file, merge_chunks
-from webhook_helper import upload_files
+from discordfilesystem.file_helper import split_file, merge_chunks
+from discordfilesystem.webhook_helper import upload_files
 
 
 this_file_dir = os.path.dirname(os.path.abspath(__file__))
@@ -204,30 +203,3 @@ class FileSystem:
         await merge_chunks(
             file_urls, file_size, output_path, temp_folder=temp_folder
         )
-
-    async def test(self):
-        """Test the Discord File System."""
-
-        # upload a file
-        # await self.upload_file("C:\\Users\\broth\\Code\\Discord Bots\\discordFileSystem\\discordfilesystem\\downloaded_files\\valorant.mp4")
-
-        # create the download directory
-        if not os.path.exists("./downloaded_files/"):
-            os.makedirs("./downloaded_files/")
-
-        # download a file
-        download_dir = os.path.abspath("./downloaded_files/")
-        await self.download_file("3571", download_dir=download_dir)
-
-
-if __name__ == "__main__":
-    webhooks = [
-        "https://discord.com/api/webhooks/1179721340689842236/ZBJk8ZokbSuAMPYDB3clIZuYa7gnw95wsRgEOi5ZqwdVqupmt4N1I-1eovLAR8kFzr02",
-        "https://discord.com/api/webhooks/1180123961909051473/dRRzVJ93BL6E2x-r5sb3Rt45lPVGtkR9IpabCOABcWXIp_7Hyz0khTljuA6gzNALBJD7",
-        "https://discord.com/api/webhooks/1179721808421867590/gQ77GS_in15R_Z5vOw10EK5XMgpc6jV8MkCZyDQGBU_0EEz487Vl9fOdjSjhnT5-j1yo",
-        "https://discord.com/api/webhooks/1179721862863917056/dpRDWWW4ce8W3gI29NVvKsO9I8EOxvZbPLH3pv89bsSO9j9H42i0SZ2PViYXoP9oRrhA",
-        "https://discord.com/api/webhooks/1179721901233418314/tULNftikKEuJFeJfkzMyGyUiZgzSfnUdA1JsOKHlzF5fsViY75EJqKCPBck18E3xXs9X"
-    ]
-    core = FileSystem(
-        "./", webhooks)
-    asyncio.run(core.test())

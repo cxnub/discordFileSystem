@@ -59,15 +59,3 @@ async def upload_files(
     return [
         message.attachments[0] for message in webhook_messages
     ]
-
-
-# if __name__ == "__main__":
-
-#     # testing upload_files function
-#     result = asyncio.run(
-#         upload_files(
-#             [discord.File("8912.0"), discord.File("8912.0"), discord.File("8912.0"), discord.File("8912.0")],
-#             "https://discord.com/api/webhooks/1179721340689842236/ZBJk8ZokbSuAMPYDB3clIZuYa7gnw95wsRgEOi5ZqwdVqupmt4N1I-1eovLAR8kFzr02"
-#         )
-#     )
-#     print(result)
