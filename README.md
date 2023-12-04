@@ -36,11 +36,8 @@ This project explores the feasibility of leveraging Discord for storing and retr
    - [How to create a Discord Webhook](https://support.discord.com/hc/en-us/articles/228383668-Intro-to-Webhooks).
    - Note down the webhook urls.
 
-2. **Configure the Project:**
+2. **Clone the Project:**
    - Clone this repository.
-   - Update config.json, it should look like this:
-     ```json
-     {"webhooks": ["YOUR_WEBHOOK_URL"]}
 
 3. **Install Dependencies:**
    ```bash
