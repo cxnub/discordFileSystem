@@ -10,6 +10,7 @@ This project explores the feasibility of leveraging Discord for storing and retr
 
 - **File Upload:** Upload files to Discord servers for storage.
 - **File Download:** Retrieve files from Discord servers using Python.
+- - **Export/Import of files cache:** Enables sharing of files just by importing files cache.
 - **Asynchronous Uploading/Downloading:** Uploading and downloading files are made asynchronously and run concurrently.
 - **Filename Indexing:** Implement a mechanism to handle filename collisions and maintain uniqueness.
 - **Proof of Concept:** Explore the potential of Discord as a cloud storage solution.
@@ -18,7 +19,6 @@ This project explores the feasibility of leveraging Discord for storing and retr
 - **Encryption:** Optional encryption for files uploaded to discord.
 - **Graphical User Interface:** A user-friendly GUI for easier usage.
 - **Folders:** Folders to organise files.
-- **Export/Import of files cache:** Enables sharing of files just by importing files cache.
 
 ## Limitations
 - Discord attachment URLs now expire in 2 months and would require a user to regenerate a new URL.
@@ -47,4 +47,16 @@ This project explores the feasibility of leveraging Discord for storing and retr
    ```bash
    python cli.py
 
+## Commands List
+| Command                      | Description                                         |
+|------------------------------|-----------------------------------------------------|
+| 1. Show files                | Show all files.                                     |
+| 2. Upload file               | Upload a file to Discord's server.                  |
+| 3. Download file             | Download a file using the file id.                  |
+| 4. Import files cache        | Import files cache.                                 |
+| 5. Export files cache        | Export files cache for sharing.                     |
+| 6. Add webhooks              | Add webhooks to the config file.                    |
+| 7. Change download directory | Change the directory where files are downloaded to. |
+| 8. Help                      | Shows the help message.                             |
+| 9. Quit                      | Quit the program.                                   |
    
