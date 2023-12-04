@@ -1,6 +1,6 @@
 # DiscordFileSystem
 
-DiscordFileSystem is a proof of concept that demonstrates the use of Discord as a cloud file storage solution using Python.
+Discord File System is a proof of concept that demonstrates the use of Discord as a cloud file storage solution using Python.
 
 ## Overview
 
