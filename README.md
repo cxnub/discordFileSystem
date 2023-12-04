@@ -13,6 +13,10 @@ This project explores the feasibility of leveraging Discord, a popular communica
 - **Filename Indexing:** Implement a mechanism to handle filename collisions and maintain uniqueness.
 - **Proof of Concept:** Explore the potential of Discord as a cloud storage solution.
 
+## Upcoming Features
+- **Encryption:** Optional encryption for files uploaded to discord.
+- **Graphical User Interface:** A user-friendly GUI for easier usage.
+
 ## Prerequisites
 
 - Python 3.12.0
