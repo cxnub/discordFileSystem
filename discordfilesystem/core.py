@@ -25,12 +25,26 @@ class FileSystem:
     It initializes necessary variables and data structures and contains the
     main logic of the program.
 
-    Attributes:
-        None
+    Attributes
+    ----------
+        webhook_urls: The webhook urls to use for uploading files.
 
-    Methods:
-        __init__(): Initializes the Core class.
-        run(): Executes the main logic of the program.
+    Methods
+    -------
+        read_files_cache(self):
+            Read the files cache.
+        update_files_cache(self, file_id, urls, filename, size):
+            Update the files cache.
+        import_files_cache(self, files_cache_path):
+            Import the files cache.
+        export_files_cache(self, output_path, file_ids=None):
+            Export the files cache.
+        upload_chunks(self, session, file_chunks):
+            Upload chunks to discord.
+        upload_file(self, file_path, chunks_per_upload=5):
+            Upload a file to discord.
+        download_file(self, file_id, download_dir):
+            Download a file from discord.
     """
 
     def __init__(self, webhook_urls: list[str]):
@@ -78,6 +92,85 @@ class FileSystem:
         # write the files cache
         with open(cache_file, "w", encoding="utf-8") as f:
             json.dump(files_cache, f, indent=4)
+
+    def import_files_cache(self, files_cache_path: str):
+        """Import the files cache.
+
+        Parameters
+        ----------
+        files_cache_path : str
+            The path to the files cache.
+        """
+        # read the imported files cache
+        with open(files_cache_path, "r", encoding="utf-8") as f:
+            imported_files_cache = dict(json.load(f))
+
+        # read the files cache
+        files_cache = self.read_files_cache()
+
+        # update the files cache
+        files_cache.update(imported_files_cache)
+
+        # write the files cache
+        with open(cache_file, "w", encoding="utf-8") as f:
+            json.dump(files_cache, f, indent=4)
+
+    def export_files_cache(
+        self, output_dir: str,
+        file_ids: List[int] = None,
+        output_file_name: str = "files_cache.json"
+    ):
+        """Export the files cache.
+
+        Parameters
+        ----------
+        output_dir : str
+            The directory to export the files cache to.
+        file_ids : list of int
+            The ids of the files to export. Defaults to None.
+        output_file_name : str
+            The name of the output file. Defaults to "files_cache.json".
+        """
+        # get the directory to export the files cache to
+        output_dir = os.path.abspath(output_dir)
+
+        # read the files cache
+        files_cache = self.read_files_cache()
+
+        # filter the files cache
+        files_cache = {
+            file_id: files_cache[file_id] for file_id in file_ids
+        }
+
+        # generate a unique file name
+        output_file = os.path.join(output_dir, output_file_name)
+        output_file = self.generate_file_name(output_file)
+
+        # write the files cache
+        with open(output_file, "w", encoding="utf-8") as f:
+            json.dump(files_cache, f, indent=4)
+
+    def generate_file_name(self, file_path: str):
+        """Generate a file name for a file.
+
+        Parameters
+        ----------
+        file_path : str
+            The path to the file.
+        """
+
+        # get the output file path
+        output_path = os.path.abspath(file_path)
+
+        index = 1
+        while os.path.exists(output_path):
+            name, extension = os.path.splitext(output_path)
+            new_file_path = f"{name} ({index}){extension}"
+            output_path = os.path.abspath(new_file_path)
+
+            index += 1
+
+        return output_path
 
     async def upload_chunks(
         self,
@@ -210,13 +303,8 @@ class FileSystem:
         # get the output file path
         output_path = os.path.join(download_dir, filename)
 
-        index = 1
-        while os.path.exists(output_path):
-            name, extension = os.path.splitext(filename)
-            new_filename = f"{name} ({index}){extension}"
-            output_path = os.path.join(download_dir, new_filename)
-
-            index += 1
+        # generate a unique file name
+        output_path = self.generate_file_name(output_path)
 
         # get the file size
         file_size = file_data["size"]

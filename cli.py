@@ -2,8 +2,13 @@
 import os
 import json
 import asyncio
+from functools import partial
+from inspect import iscoroutinefunction
 
 from discordfilesystem import core
+
+
+this_file_dir = os.path.dirname(os.path.abspath(__file__))
 
 
 def read_config():
@@ -82,13 +87,181 @@ def show_files(file_system: core.FileSystem):
 
     files_cache = file_system.read_files_cache()
 
-    # print table like structure of files
-    print("id\t| filename\t| size")
-    print("-" * 40)
+    # define the padding for each column
+    padding = 6
+
+    files_cache_keys = files_cache.keys()
+    files_cache_values = files_cache.values()
+
+    # get the largest strings for each column
+    max_id_length = len(max(files_cache_keys, key=lambda x: len(str(x)))) + \
+        padding
+    max_filename_length = len(
+        max(
+            files_cache_values,
+            key=lambda x: len(x["filename"]))["filename"]
+    ) + padding
+    max_size_length = max(
+        len(format_bytes(file["size"])) for file in files_cache_values
+    ) + padding
+
+    # print the column headers
+    print(
+        f"{'id':^{max_id_length}}║ " +
+        f"{'filename':^{max_filename_length}}║ " +
+        f"{'size':^{max_size_length}}\n" +
+        "═" * (max_id_length + max_filename_length + max_size_length + 3)
+    )
+
     for file_id, file in files_cache.items():
         print(
-            f"{file_id}\t| {file['filename']}\t| {format_bytes(file['size'])}"
+            f"{file_id:^{max_id_length}}║ " +
+            f"{file['filename']:^{max_filename_length}}║ " +
+            f"{format_bytes(file['size']):^{max_size_length}}"
         )
+
+
+async def upload(file_system: core.FileSystem):
+    """Upload a file to discord.
+
+    Parameters
+    ----------
+    file_system : `discordfilesystem.core.FileSystem`
+        The file system to use.
+    """
+
+    # get the file path
+    file_path = input("Enter file path: ")
+
+    # check if file exists
+    if not os.path.isfile(file_path):
+        print("Could not find file at " + file_path)
+
+    file_path = os.path.abspath(file_path)
+
+    # upload the file
+    await file_system.upload_file(file_path)
+
+
+async def download(file_system: core.FileSystem):
+    """Download a file from discord.
+
+    Parameters
+    ----------
+    file_system : `discordfilesystem.core.FileSystem`
+        The file system to use.
+    download_dir : str
+        The directory to download the file to.
+    """
+    download_dir = read_config()["download_dir"]
+    file_id = input("Enter file id: ")
+    await file_system.download_file(file_id, download_dir)
+
+
+def import_files_cache(file_system: core.FileSystem):
+    """Import the files cache from a json file.
+
+    Parameters
+    ----------
+    file_system : `discordfilesystem.core.FileSystem`
+        The file system to use.
+    """
+    # get the file path
+    file_path = input("Enter file path: ")
+
+    # check if file exists
+    if not os.path.isfile(file_path):
+        print("Could not find file at " + file_path)
+        return
+
+    file_path = os.path.abspath(file_path)
+
+    # import the files cache
+    file_system.import_files_cache(file_path)
+
+    print(f"{file_path} imported successfully.")
+
+
+def export_files_cache(file_system: core.FileSystem):
+    """Export the files cache to a json file.
+
+    Parameters
+    ----------
+    file_system : `discordfilesystem.core.FileSystem`
+        The file system to use.
+    """
+    os.system("cls" if os.name == "nt" else "clear")
+
+    show_files(file_system)
+
+    # get all the file ids
+    file_ids = list(file_system.read_files_cache().keys())
+
+    # get file ids to export
+    file_ids_to_export = []
+    while True:
+        user_input = input(
+            "Enter file id (leave blank to stop, input 'all' to export all):\n"
+        )
+
+        if user_input == "all":
+            file_ids_to_export = file_ids
+            break
+
+        if user_input in file_ids:
+            file_ids_to_export.append(user_input)
+
+        elif user_input == "":
+            break
+
+        else:
+            print("Invalid file id...")
+
+    # get the output directory
+    output_dir = this_file_dir + "/exports"
+
+    # create the output directory if it doesn't exist
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # export the files cache
+    file_system.export_files_cache(output_dir, file_ids_to_export)
+
+    print(f"Files exported successfully to {output_dir}.")
+
+
+def show_commands():
+    """Show the help menu."""
+    print("""
+Commands
+--------
+1. Show files
+2. Upload file
+3. Download file
+4. Import Files Cache
+5. Export Files Cache
+6. Add webhooks
+7. Change download directory
+8. Help
+9. Quit
+          """)
+
+
+def show_help():
+    """Show the help menu."""
+    print("""
+Help Menu
+---------
+1. Show files - Show the files in the files cache.
+2. Upload file - Upload a file to discord.
+3. Download file - Download a file from discord.
+4. Import Files Cache - Import the files cache from a json file.
+5. Export Files Cache - Export the files cache to a json file.
+6. Add webhooks - Add webhooks to the config file.
+7. Change download directory - Change download directory to the config file.
+8. Help - Show the help menu.
+9. Quit - Exit the program.
+            """)
 
 
 async def main():
@@ -104,9 +277,12 @@ async def main():
   ___) | |_| \__ \ ||  __/ | | | | |             
  |____/ \__, |___/\__\___|_| |_| |_|             
         |___/
+
+Made by: cxnub
+Github: https://github.com/cxnub/discordFileSystem
 __________________________________________________                              
           """
-    )
+          )
 
     webhooks = read_config()["webhooks"]
     download_dir = read_config()["download_dir"]
@@ -127,55 +303,47 @@ __________________________________________________
             print("Exiting...")
             exit()
 
-    webhooks = read_config()["webhooks"]
-    download_dir = read_config()["download_dir"]
     file_system = core.FileSystem(webhooks)
 
+    commands_list = [
+        partial(show_files, file_system),
+        partial(upload, file_system),
+        partial(download, file_system),
+        partial(import_files_cache, file_system),
+        partial(export_files_cache, file_system),
+        add_webhooks,
+        add_download_dir,
+        show_help,
+        exit
+    ]
+
     while True:
-        command = input("Enter command (help): ")
+        # show the commands
+        show_commands()
+        user_input = input("Enter command (help): ")
 
-        if command == "exit":
-            break
+        # check if user input is a digit and is in range of commands list
+        if not user_input.isdigit() or \
+                (int(user_input)) - 1 not in range(len(commands_list)):
 
-        if command == "upload":
-            # get the file path
-            file_path = input("Enter file path: ")
+            print("Invalid command... Type help for a list of commands")
+            continue
 
-            # check if file exists
-            if not os.path.isfile(file_path):
-                print("Could not find file at " + file_path)
+        # get the command index
+        command_index = int(user_input) - 1
 
-            file_path = os.path.abspath(file_path)
+        # get the command
+        command = commands_list[command_index]
 
-            # upload the file
-            await file_system.upload_file(file_path)
+        # check if command is coroutine
+        if iscoroutinefunction(command):
 
-        elif command == "download":
-            file_id = str(input("Enter file id: "))
-            await file_system.download_file(file_id, download_dir)
-
-        # elif command == "delete":
-        #     file_id = int(input("Enter file id: "))
-        #     file_system.delete_file(file_id)
-
-        elif command == "list":
-            show_files(file_system)
-
-        elif command == "help":
-            print(
-                "upload - Upload a file\n" +
-                "download - Download a file\n" +
-                "list - List all files\n" +
-                "exit - Exit the program\n" +
-                "help - Show this message\n" +
-                "add_webhooks - Add webhooks"
-            )
-
-        elif command == "add_webhooks":
-            add_webhooks()
+            # run the command
+            await command()
 
         else:
-            print("Invalid command")
+            # run the command
+            command()
 
 
 if __name__ == "__main__":
