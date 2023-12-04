@@ -17,6 +17,8 @@ This project explores the feasibility of leveraging Discord for storing and retr
 ## Upcoming Features
 - **Encryption:** Optional encryption for files uploaded to discord.
 - **Graphical User Interface:** A user-friendly GUI for easier usage.
+- **Folders:** Folders to organise files.
+- **Export/Import of files cache:** Enables sharing of files just by importing files cache.
 
 ## Limitations
 - Discord attachment URLs now expire in 2 months and would require a user to regenerate a new URL.
