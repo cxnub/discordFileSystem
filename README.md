@@ -10,7 +10,7 @@ This project explores the feasibility of leveraging Discord for storing and retr
 
 - **File Upload:** Upload files to Discord servers for storage.
 - **File Download:** Retrieve files from Discord servers using Python.
-- - **Export/Import of files cache:** Enables sharing of files just by importing files cache.
+- **Export/Import of files cache:** Enables sharing of files just by importing files cache.
 - **Asynchronous Uploading/Downloading:** Uploading and downloading files are made asynchronously and run concurrently.
 - **Filename Indexing:** Implement a mechanism to handle filename collisions and maintain uniqueness.
 - **Proof of Concept:** Explore the potential of Discord as a cloud storage solution.
