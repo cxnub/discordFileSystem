@@ -26,7 +26,7 @@ This project explores the feasibility of leveraging Discord for storing and retr
 - **Folders:** Folders to organise files.
 
 ## Limitations
-- Discord attachment URLs now expire in 2 months and would require a user to regenerate a new URL.
+- Discord attachment URLs now expire in 2 months and would require a user to regenerate a new URL. (I may find a way to address this issue in the future)
 - Max chunk size of 24MB due to Discord's  attachment upload limit.
 
 ## Prerequisites
