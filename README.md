@@ -6,6 +6,11 @@ Discord File System is a proof of concept that demonstrates the use of Discord a
 
 This project explores the feasibility of leveraging Discord for storing and retrieving files. By integrating Python with the Discord API, I aim to provide a basic cloud file storage system.
 
+## How it Works
+- Large files (>24MB) are split into 24MB chunks and uploaded to a Discord channel via webhooks.
+- The program records attachment URLs for each file's chunks.
+- Upon retrieval, the program downloads chunks from the stored URLs and merges them into the original file.
+
 ## Features
 
 - **File Upload:** Upload files to Discord servers for storage.
