@@ -69,7 +69,7 @@ This project explores the feasibility of leveraging Discord for storing and retr
 | 3. Add webhooks              | Add webhooks to the config file.                      |
 | 4. Change download directory | Change the directory where files are downloaded to.   |
 | 5. Change chunk size         | Change the size of each chunk. Defaults to 24000000.  |
-| 6. Change chunks per upload  | Change the number of chunks per upload. Deafults to 5.|
+| 6. Change chunks per upload  | Change the number of chunks per upload. Defaults to 5.|
 | 7. Back                      | Return to main page.                                  |
 
 **__NOTES:__** 
