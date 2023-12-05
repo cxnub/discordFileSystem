@@ -118,8 +118,13 @@ async def upload(file_system: core.FileSystem):
 
     file_path = os.path.abspath(file_path)
 
+    # get chunk size and chunks per upload
+    config = read_config()
+    chunk_size = config["chunk_size"]
+    chunks_per_upload = config["chunks_per_upload"]
+
     # upload the file
-    await file_system.upload_file(file_path)
+    await file_system.upload_file(file_path, chunk_size, chunks_per_upload)
 
 
 async def download(file_system: core.FileSystem):
@@ -269,6 +274,64 @@ def export_files_cache(file_system: core.FileSystem):
     print(f"Files exported successfully to {output_dir}.")
 
 
+def change_chunk_size():
+    """Change the chunk size in the config file."""
+
+    config = read_config()
+    print("""
+--------------------------------------------------------------------
+WARNING!!!
+Changing this settings may affect upload speed or even cause errors.
+Change it only if you know what you are doing. Default is 24000000.
+You may check discord's max upload limit here:
+https://discord.com/developers/docs/reference#uploading-files
+--------------------------------------------------------------------
+""")
+    print(f"Current chunk size: {config['chunk_size']} bytes")
+    chunk_size = input("Enter chunk size (bytes): ")
+
+    if not chunk_size.isdigit():
+        print("Invalid chunk size...")
+        return
+
+    config["chunk_size"] = int(chunk_size)
+
+    with open("./config.json", "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4)
+
+    print(f"Max chunk size changed to {chunk_size}.")
+    input("\nPress enter to continue...")
+
+
+def change_chunks_per_upload():
+    """Change the chunks per upload in the config file."""
+
+    config = read_config()
+    print("""
+--------------------------------------------------------------------
+WARNING!!!
+Changing this settings may affect upload speed or even cause errors.
+Change it only if you know what you are doing. Default is 5.
+Increasing this value may take up more RAM.
+--------------------------------------------------------------------
+    """)
+
+    print(f"Current chunks per upload: {config['chunks_per_upload']}")
+    chunks_per_upload = input("Enter chunks per upload: ")
+
+    if not chunks_per_upload.isdigit():
+        print("Invalid chunks per upload...")
+        return
+
+    config["chunks_per_upload"] = int(chunks_per_upload)
+
+    with open("./config.json", "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4)
+
+    print(f"Max chunks per upload changed to {chunks_per_upload}.")
+    input("\nPress enter to continue...")
+
+
 async def settings(file_system: core.FileSystem):
     """Show the settings menu.
 
@@ -281,7 +344,9 @@ async def settings(file_system: core.FileSystem):
         partial(import_files_cache, file_system),
         partial(export_files_cache, file_system),
         add_webhooks,
-        add_download_dir
+        add_download_dir,
+        change_chunk_size,
+        change_chunks_per_upload
     ]
 
     while True:
@@ -293,7 +358,9 @@ Settings
 2. Export Files Cache
 3. Add webhooks
 4. Change download directory
-5. Back
+5. Change chunk size
+6. Change chunks per upload
+7. Back
     """)
 
         user_input = input("Enter command (back): ")

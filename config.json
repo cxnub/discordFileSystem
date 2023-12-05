@@ -1,1 +1,6 @@
-{"webhooks": [], "download_dir": ""}
+{
+    "webhooks": [""],
+    "download_dir": "",
+    "chunk_size": 24000000,
+    "chunks_per_upload": 5
+}

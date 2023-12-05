@@ -7,14 +7,13 @@ import aiofiles
 from tqdm import tqdm
 
 
-CHUNK_SIZE = 24_000_000
 this_file_dir = os.path.dirname(os.path.abspath(__file__))
 temp_download_folder = this_file_dir + "/temp_download_files/"
 temp_upload_folder = this_file_dir + "/temp_upload_files/"
 
 
 async def split_file(
-    file_path: str, chunk_size: int = CHUNK_SIZE
+    file_path: str, chunk_size: int
 ) -> List[str]:
     """Split a file into chunks and stores them in a temporary folder.
 

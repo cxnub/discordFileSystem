@@ -24,7 +24,6 @@ This project explores the feasibility of leveraging Discord for storing and retr
 - **Encryption:** Optional encryption for files uploaded to discord.
 - **Graphical User Interface:** A user-friendly GUI for easier usage.
 - **Folders:** Folders to organise files.
-- **More Customability:** Ability to change number of chunks to upload concurrently (default: 5), ability to change chunk size (default: 24MB)
 
 ## Limitations
 - Discord attachment URLs now expire in 2 months and would require a user to regenerate a new URL.
@@ -63,11 +62,17 @@ This project explores the feasibility of leveraging Discord for storing and retr
 | 5. Quit                      | Quit the program.                                   |
 
 ## Settings List
-| Command                      | Description                                         |
-|------------------------------|-----------------------------------------------------|
-| 1. Import files cache        | Import files cache.                                 |
-| 2. Export files cache        | Export files cache for sharing.                     |
-| 3. Add webhooks              | Add webhooks to the config file.                    |
-| 4. Change download directory | Change the directory where files are downloaded to. |
-| 5. Back                      | Return to main page.                                |
+| Command                      | Description                                           |
+|------------------------------|-------------------------------------------------------|
+| 1. Import files cache        | Import files cache.                                   |
+| 2. Export files cache        | Export files cache for sharing.                       |
+| 3. Add webhooks              | Add webhooks to the config file.                      |
+| 4. Change download directory | Change the directory where files are downloaded to.   |
+| 5. Change chunk size         | Change the size of each chunk. Defaults to 24000000.  |
+| 6. Change chunks per upload  | Change the number of chunks per upload. Deafults to 5.|
+| 7. Back                      | Return to main page.                                  |
 
+**__NOTEs:__** 
+- Changing chunk size and chunks per upload may cause the program to break, change it only if you know what you are doing.
+- Chunk size is limited to Discord's file upload size limit. [See more here](https://discord.com/developers/docs/reference#uploading-files)
+- Increasing chunks per upload may take up more RAM.
