@@ -72,7 +72,7 @@ This project explores the feasibility of leveraging Discord for storing and retr
 | 6. Change chunks per upload  | Change the number of chunks per upload. Deafults to 5.|
 | 7. Back                      | Return to main page.                                  |
 
-**__NOTEs:__** 
+**__NOTES:__** 
 - Changing chunk size and chunks per upload may cause the program to break, change it only if you know what you are doing.
 - Chunk size is limited to Discord's file upload size limit. [See more here](https://discord.com/developers/docs/reference#uploading-files)
 - Increasing chunks per upload may take up more RAM.
