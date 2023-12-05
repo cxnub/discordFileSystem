@@ -65,6 +65,11 @@ def show_files(file_system: core.FileSystem):
     files_cache_keys = files_cache.keys()
     files_cache_values = files_cache.values()
 
+    if files_cache_keys == []:
+        print("No files found...")
+        input("\nPress enter to continue...")
+        return
+
     # get the largest strings for each column
     max_id_length = len(max(files_cache_keys, key=lambda x: len(str(x)))) + \
         padding
