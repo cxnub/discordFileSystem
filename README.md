@@ -24,6 +24,7 @@ This project explores the feasibility of leveraging Discord for storing and retr
 - **Encryption:** Optional encryption for files uploaded to discord.
 - **Graphical User Interface:** A user-friendly GUI for easier usage.
 - **Folders:** Folders to organise files.
+- **More Customability:** Ability to change number of chunks to upload concurrently (default: 5), ability to change chunk size (default: 24MB)
 
 ## Limitations
 - Discord attachment URLs now expire in 2 months and would require a user to regenerate a new URL.
