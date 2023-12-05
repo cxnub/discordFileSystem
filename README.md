@@ -15,7 +15,7 @@ This project explores the feasibility of leveraging Discord for storing and retr
 
 - **File Upload:** Upload files to Discord servers for storage.
 - **File Download:** Retrieve files from Discord servers using Python.
-- **Settings:** Modify various config settings. [See more here](#settings-list)
+- **Settings:** Modify various config settings. ([See more here](#settings-list))
 - **Asynchronous Uploading/Downloading:** Uploading and downloading files are made asynchronously and run concurrently.
 - **Filename Indexing:** Implement a mechanism to handle filename collisions and maintain uniqueness.
 - **Proof of Concept:** Explore the potential of Discord as a cloud storage solution.
@@ -26,8 +26,9 @@ This project explores the feasibility of leveraging Discord for storing and retr
 - **Folders:** Folders to organise files.
 
 ## Limitations
-- Discord attachment URLs now expire in 2 months and would require a user to regenerate a new URL. (I may find a way to address this issue in the future)
-- Max chunk size of 24MB due to Discord's  attachment upload limit.
+- Discord attachment URLs now expire in 2 months and would require a user to regenerate a new URL. \
+  (I may find a way to address this issue in the future)
+- Max chunk size of 25MiB due to Discord's attachment upload limit. ([See more here](https://discord.com/developers/docs/reference#uploading-files))
 
 ## Prerequisites
 
@@ -62,17 +63,17 @@ This project explores the feasibility of leveraging Discord for storing and retr
 | 5. Quit                      | Quit the program.                                   |
 
 ## Settings List
-| Command                      | Description                                           |
-|------------------------------|-------------------------------------------------------|
-| 1. Import files cache        | Import files cache.                                   |
-| 2. Export files cache        | Export files cache for sharing.                       |
-| 3. Add webhooks              | Add webhooks to the config file.                      |
-| 4. Change download directory | Change the directory where files are downloaded to.   |
-| 5. Change chunk size         | Change the size of each chunk. Defaults to 24000000.  |
-| 6. Change chunks per upload  | Change the number of chunks per upload. Defaults to 5.|
-| 7. Back                      | Return to main page.                                  |
+| Command                      | Description                                                                |
+|------------------------------|----------------------------------------------------------------------------|
+| 1. Import files cache        | Import files cache.                                                        |
+| 2. Export files cache        | Export files cache for sharing.                                            |
+| 3. Add webhooks              | Add webhooks to the config file.                                           |
+| 4. Change download directory | Change the directory where files are downloaded to.                        |
+| 5. Change chunk size         | Change the size of each chunk.<br>Defaults to 24000000 bytes.              |
+| 6. Change chunks per upload  | Change the number of chunks per upload.<br>Defaults to 5 chunks per upload.|
+| 7. Back                      | Return to main page.                                                       |
 
 **__NOTES:__** 
 - Changing chunk size and chunks per upload may cause the program to break, change it only if you know what you are doing.
-- Chunk size is limited to Discord's file upload size limit. [See more here](https://discord.com/developers/docs/reference#uploading-files)
+- Chunk size is limited to Discord's file upload size limit. ([See more here](https://discord.com/developers/docs/reference#uploading-files))
 - Increasing chunks per upload may take up more RAM.
