@@ -11,6 +11,8 @@ from discordfilesystem import core
 this_file_dir = os.path.dirname(os.path.abspath(__file__))
 
 
+# ------------------------------ Commands ------------------------------
+
 def read_config():
     """Read the config file.
 
@@ -22,36 +24,6 @@ def read_config():
     # read the config file
     with open("./config.json", "r", encoding="utf-8") as f:
         return dict(json.load(f))
-
-
-def add_webhooks():
-    """Add webhooks to the config file."""
-
-    config = read_config()
-    while True:
-        webhook_url = input("Enter webhook url (leave blank to stop): ")
-        if webhook_url.isspace() or webhook_url == "":
-            break
-        config["webhooks"].append(webhook_url)
-    with open("./config.json", "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=4)
-
-
-def add_download_dir():
-    """Add a download directory to the config file."""
-
-    config = read_config()
-    download_dir = input("Enter download directory: ")
-
-    if not os.path.isdir(download_dir):
-        print("Directoy not found")
-        exit()
-
-    download_dir = os.path.abspath(download_dir)
-    config["download_dir"] = download_dir
-
-    with open("./config.json", "w", encoding="utf-8") as f:
-        json.dump(config, f, indent=4)
 
 
 def format_bytes(size: int) -> str:
@@ -120,6 +92,8 @@ def show_files(file_system: core.FileSystem):
             f"{format_bytes(file['size']):^{max_size_length}}"
         )
 
+    input("\nPress enter to continue...")
+
 
 async def upload(file_system: core.FileSystem):
     """Upload a file to discord.
@@ -156,6 +130,66 @@ async def download(file_system: core.FileSystem):
     download_dir = read_config()["download_dir"]
     file_id = input("Enter file id: ")
     await file_system.download_file(file_id, download_dir)
+
+
+def show_commands():
+    """Show the help menu."""
+    print("""
+Commands
+--------
+1. Show files
+2. Upload file
+3. Download file
+4. Settings
+5. Help
+6. Quit
+          """)
+
+
+def show_help():
+    """Show the help menu."""
+    print("""
+Help Menu
+---------
+1. Show files - Show the files in the files cache.
+2. Upload file - Upload a file to discord.
+3. Download file - Download a file from discord.
+4. Settings - Change config settings.
+5. Help - Show the help menu.
+6. Quit - Exit the program.
+            """)
+
+# ------------------------------ Settings ------------------------------
+
+
+def add_webhooks():
+    """Add webhooks to the config file."""
+
+    config = read_config()
+    while True:
+        webhook_url = input("Enter webhook url (leave blank to stop): ")
+        if webhook_url.isspace() or webhook_url == "":
+            break
+        config["webhooks"].append(webhook_url)
+    with open("./config.json", "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4)
+
+
+def add_download_dir():
+    """Add a download directory to the config file."""
+
+    config = read_config()
+    download_dir = input("Enter download directory: ")
+
+    if not os.path.isdir(download_dir):
+        print("Directoy not found")
+        exit()
+
+    download_dir = os.path.abspath(download_dir)
+    config["download_dir"] = download_dir
+
+    with open("./config.json", "w", encoding="utf-8") as f:
+        json.dump(config, f, indent=4)
 
 
 def import_files_cache(file_system: core.FileSystem):
@@ -230,38 +264,63 @@ def export_files_cache(file_system: core.FileSystem):
     print(f"Files exported successfully to {output_dir}.")
 
 
-def show_commands():
-    """Show the help menu."""
-    print("""
-Commands
+async def settings(file_system: core.FileSystem):
+    """Show the settings menu.
+
+    Parameters
+    ----------
+    file_system : `discordfilesystem.core.FileSystem`
+        The file system to use.
+    """
+    settings_list = [
+        partial(import_files_cache, file_system),
+        partial(export_files_cache, file_system),
+        add_webhooks,
+        add_download_dir
+    ]
+
+    while True:
+
+        print("""
+Settings
 --------
-1. Show files
-2. Upload file
-3. Download file
-4. Import Files Cache
-5. Export Files Cache
-6. Add webhooks
-7. Change download directory
-8. Help
-9. Quit
-          """)
+1. Import Files Cache
+2. Export Files Cache
+3. Add webhooks
+4. Change download directory
+5. Back
+    """)
+
+        user_input = input("Enter command (back): ")
+
+        if not user_input.isdigit() or \
+                (int(user_input)) - 1 not in range(len(settings_list) + 1):
+            print("Invalid command...")
+            continue
+
+        user_input = int(user_input) - 1
+
+        if user_input == len(settings_list):
+            break
+
+        # get the command index
+        command_index = user_input
+
+        # get the command
+        command = settings_list[command_index]
+
+        # check if command is coroutine
+        if iscoroutinefunction(command):
+
+            # run the command
+            await command()
+
+        else:
+            # run the command
+            command()
 
 
-def show_help():
-    """Show the help menu."""
-    print("""
-Help Menu
----------
-1. Show files - Show the files in the files cache.
-2. Upload file - Upload a file to discord.
-3. Download file - Download a file from discord.
-4. Import Files Cache - Import the files cache from a json file.
-5. Export Files Cache - Export the files cache to a json file.
-6. Add webhooks - Add webhooks to the config file.
-7. Change download directory - Change download directory to the config file.
-8. Help - Show the help menu.
-9. Quit - Exit the program.
-            """)
+# ------------------------------ Main ------------------------------
 
 
 async def main():
@@ -309,10 +368,7 @@ __________________________________________________
         partial(show_files, file_system),
         partial(upload, file_system),
         partial(download, file_system),
-        partial(import_files_cache, file_system),
-        partial(export_files_cache, file_system),
-        add_webhooks,
-        add_download_dir,
+        partial(settings, file_system),
         show_help,
         exit
     ]

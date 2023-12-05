@@ -13,6 +13,7 @@ from discordfilesystem.file_helper import split_file, merge_chunks
 from discordfilesystem.webhook_helper import upload_files
 
 
+CHUNKS_PER_UPLOAD = 5
 this_file_dir = os.path.dirname(os.path.abspath(__file__))
 cache_file = this_file_dir + "./files_cache.json"
 cache_file = os.path.abspath(cache_file)
@@ -199,7 +200,7 @@ class FileSystem:
         return [attachment.url for attachment in attachments]
 
     async def upload_file(
-        self, file_path: str, chunks_per_upload: int = 5
+        self, file_path: str, chunks_per_upload: int = CHUNKS_PER_UPLOAD
     ):
         """Upload a file to discord.
 
