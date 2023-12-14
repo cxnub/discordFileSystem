@@ -32,7 +32,7 @@ This project explores the feasibility of leveraging Discord for storing and retr
 
 ## Prerequisites
 
-- Python 3.12.0
+- Python (>= 3.9)
 - Discord's Webhook URL(s)
 
 ## Getting Started
